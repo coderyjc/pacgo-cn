@@ -1,52 +1,59 @@
+## 开始
 
-## Getting Started
+### 前置要求
 
-### Pre-requisites
+建议具备以下基础：
+- 编程语言基础概念（本教程不涉及基础语法讲解）
+- 终端的基本操作（能使用cmd命令行或者linux命令行）
 
-It's recommended to have:
-- Basic understanding on how programming languages work, as we won't be covering the basics
-- Basic terminal knowledge (know how to use command line applications)
+当然，如果你不具备上述基础但充满探索精神，也欢迎随时尝试。
 
-Of course, if you don't have the above, but is a curious spirit and want to try anyway, please feel free to do so.
+### 兼容性警告！
 
-### Compatibility Warning!!!
+本教程已在 **Linux** 和 **Mac OS X** 环境通过测试。Windows 用户可能需要安装终端模拟器，如 [Git BASH](https://gitforwindows.org/)。
 
-This tutorial has been tested on both **Linux** and **Mac OS X** environments. For Windows environments you _may_ need to install a terminal emulator, like [Git BASH](https://gitforwindows.org/).
+> 译注：本教程也在 **Windows WSL2** 中通过测试了。
 
-Please beware that since this code relies on the terminal to render the game it can produce different results for different configurations.
+请注意，由于本游戏依赖终端渲染，不同配置环境下可能呈现不同效果。
 
-If you have an issue feel free to raise it so we can find a proper solution, naming both your OS and terminal names and versions.
+> 译注：是的，在我的电脑上就一闪一闪的
 
-**Note:** It is a known issue that the terminal window on VS Code doesn't render the game correctly at this moment.
+遇到问题时请提交issue，并注明操作系统及终端名称与版本信息。
 
+**已知问题：** VS Code 内置终端目前无法正确渲染游戏画面。
 
-### Setup
+### 环境配置
 
-In order to start, make sure you have Go installed in your system.
+请确保系统已安装 Go 语言环境。
 
-If you don't, please follow the instructions in [golang.org](https://golang.org)
+> 译注：命令行输入`go version`输出go语言版本号即为安装完成。
 
-### How to use this tutorial
+未安装的用户请参照 [golang.org](https://golang.org) 官方指南操作。
 
-In every step, including step 0 (this one), we will describe the task in the README.md file followed by the code that does it and an explanation of how it works.
+### 教程使用说明
 
-Every step is located in its separate folder except for this one. Look for the folders stepXX for any given step.
+每个步骤（包括步骤0）的README.md文件包含：
+1. 任务描述
+2. 实现代码
+3. 原理说明
 
-We will be editing a file called `main.go`. All the code in this tutorial will reside in this file. A proper program would usually have multiple source code files, but for the sake of simplicity we are keeping this program limited to one source.
+各步骤代码存放在对应stepXX文件夹中（步骤0除外）。
 
-The README.md for each step will explain the intent and show the modifications needed to proceed. You should make them in your own `main.go` file.
+我们将持续编辑`main.go`文件。虽然规范项目通常包含多个源文件，但为简化学习过程，本教程所有代码都将集中于此文件。
 
-You can also use the `main.go` in step 00 as a starting point and modify it incrementally when progressing through the steps.
+每个步骤的README.md会说明修改意图并展示代码变更。请同步修改您的`main.go`文件。
 
-If you get lost, every step has its own `main.go` file with the changes to that step already applied. That also means that if you want to fast track to a given step you can start with the `main.go` from the previous step.
+您可以选择：
+- 以步骤00的`main.go`为起点逐步修改
+- 直接使用各步骤已完成的`main.go`文件快速跳转
 
-## Step 00: Hello (Game) World
+## 步骤00：创建游戏框架
 
-We are going to start by laying the ground a skeleton of what a game program looks like.
+首先搭建游戏程序的基本结构。
 
-Pick a directory to be your work dir (e.g., `tutorial` under your home folder) and create a file called `main.go` with the content below.
+在工作目录（如主文件夹下的`tutorial`）创建`main.go`文件，内容如下：
 
-Note: Alternatively you can just clone this repository and edit the `main.go` file on its root.
+（或直接克隆本仓库后编辑根目录的`main.go`）
 
 ```go
 package main
@@ -54,41 +61,41 @@ package main
 import "fmt"
 
 func main() {
-    // initialize game
-
-    // load resources
-
-    // game loop
+    // 游戏初始化
+  
+    // 资源加载
+  
+    // 游戏主循环
     for {
-        // update screen
-
-        // process input
-
-        // process movement
-
-        // process collisions
-
-        // check game over
-
-        // Temp: break infinite loop
+        // 画面刷新
+      
+        // 输入处理
+      
+        // 移动计算
+      
+        // 碰撞检测
+      
+        // 游戏结束判断
+      
+        // 临时：退出无限循环
         fmt.Println("Hello, Pac Go!")
         break
-
-        // repeat
+      
+        // 循环继续
     }
 }
 ```
 
-### Running your first Go program
+### 运行第一个Go程序
 
-Now that we have a `main.go` file (`.go` is the file extension for Go source code), you can run it by using the command line tool `go`. Just type:
+通过`go`命令行工具运行：
 
 ```sh
 $ go run main.go
 Hello, Pac Go!
 ```
 
-That's how we run a single file in Go. You can also build it as an executable program with the command `go build`. If you run `go build` it will compile the files in the current directory in a binary with the name of the directory. Then you can run it as a regular program, for example:
+也可编译为可执行文件：
 
 ```sh
 $ go build
@@ -96,55 +103,46 @@ $ ./pacgo
 Hello, Pac Go!
 ```
 
-For the purposes of this tutorial we are using only a single file of code (`main.go`), so you may use either `go build` and run the command or just `go run main.go` as it does both automatically.
+本教程仅使用单个文件，因此`go run main.go`和`go build`两种方式均可。
 
-### Understanding the program
+### 代码解析
 
-Now let's have a close look of what the program does.
+1. **包声明**：
+   - 每个Go程序必须包含包声明
+   - 可执行程序必须使用`package main`并包含`main`函数
 
-First line is the `package` name. Every valid Go program must have one of these. Also, if you want to make a **runnable** program you must have a package called `main` and a `main` function, which will be the entry point of the program.
+2. **导入语句**：
+   - 用于引入其他包的功能
 
-We are creating an executable program so we are using `package main` on the top of the file.
+3. **main函数**：
 
-Next are the `import` statements. You use those to make code in other packages accessible to your program.
+   ```go
+   func main() {
+       // 函数体
+   }
+   ```
 
-Finally the `main` function. You define function in Go with the keyword `func` followed by its name, its parameters in between a pair of parentheses, followed by the return value and finally the function body, which is contained in a pair of curly brackets `{}`. For example:
+   - 使用`func`关键字定义
+   - 本教程中的main函数无参数无返回值
+   - 命令行参数处理将在[步骤08](../step08/README.md)介绍
 
-```go
-func main() {
-    // I'm a function body
-}
-```
+4. **游戏循环**：
 
-This is a function called `main` which takes no parameters and returns nothing. That's the proper definition of a main function in Go, as opposed to the definitions in other languages where the main function may take the command line arguments and/or return an integer value.
+   ```go
+   for {
+       // 无限循环体
+   }
+   ```
+   
+   - 游戏核心机制所在
+   - 通过`break`可退出循环
+   - 当前示例中的立即跳出仅为演示结构
 
-We have different ways to deal with the command line arguments and return values in Go, which we will see in [Step 08](step08/README.md).
+5. **注释部分**：
+   - 标注游戏各功能模块位置
+   - 后续步骤将逐步实现
 
-In the game main function we have some comments (any text after `//` is a comment) that are acting as placeholders for the actual game code. We'll use those to drive each modification in an orderly way.
+恭喜完成步骤00！
+[进入步骤01](../step01/README.md)
 
-The most important concept in a game is what is called the game loop. That's basically an infinite loop where all the game mechanics are processed.
-
-A loop in Go is defined with the keyword `for`. The `for` loop can have an initializer, a condition and a post processing step, but all of those are optional. If you omit all you have a loop that never ends:
-
-```go
-for {
-    // I never end
-}
-```
-
-We can exit an infinite loop with a `break` statement. We are using it in the sample code to end the infinite loop after printing "Hello, Pac Go!" with the `Println` function from the `fmt` package (comments omitted for brevity):
-
-```go
-func main() {
-    for {
-        fmt.Println("Hello, Pac Go!")
-        break
-    }
-}
-```
-
-Of course, in this case the infinite loop with a non-conditional break is pointless, but it will make sense in the next steps!
-
-Congratulations, step 00 is complete!
-
-[Take me to step 01!](step01/README.md)
+（注：技术术语保持统一，如"terminal"译作"终端"；代码块保留原格式；长句拆分为符合中文阅读习惯的短句；操作说明使用中文惯用表达方式）
