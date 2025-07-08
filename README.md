@@ -58,7 +58,7 @@ Go语言以重拾编程乐趣著称，而开发游戏正是最富趣味的学习
 
 ## 相较于原仓库的改动
 
-- 原仓库使用的是1.17，我使用的是1.24.4，经验证所有代码都能正常运行。
+- 原仓库使用的是1.17，我使用的是1.23.3，经验证所有代码都能正常运行。
 - 更改模块名为`module github.com/coderyan/pacgo-cn`
 - 在不影响学习的情况下，删除以下文件/目录：`TODO.md`,`pacgo.slide`等，上述文件都可以在[原仓库](https://github.com/danicat/pacgo)找到
 - 将`readme`文档的Getting Started部分独立出来，移动到了`./step00`中
