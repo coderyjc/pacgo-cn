@@ -1,46 +1,48 @@
-# Step 02: Handling Player Input
+# 步骤02：处理玩家输入
 
-In this lesson you will learn how to:
+在本课程中，你将学习如何：
 
-- Work with different terminal modes
-- Calling external commands from Go code
-- Send escape sequences to the terminal
-- Read from standard input
-- Create a function that returns multiple values
+- 使用不同的终端模式
+- 用Go代码调用外部命令
+- 向终端发送转义序列
+- 从标准输入读取数据
+- 创建返回多个值的函数
 
-## Overview
+## 概述
 
-In the last step we've learned how to print something to the standard output. Now it's time to learn how to read from standard input.
+在上一步中，我们学习了如何向标准输出打印内容。现在我们将学习如何从标准输入读取数据。
 
-In this game we will be processing a restricted set of movements: up, down, left and right. Besides those, the only other key we will be using is the escape key, in order to enable the player to exit the game gracefully. The movements will be mapped to the arrow keys.
+在本游戏中，我们将处理有限的移动指令：上、下、左、右。除此之外，我们只会使用退出键（Esc键）让玩家能够优雅地退出游戏。移动指令将映射到方向键。
 
-This step will handle the Esc key and we will see how to process the arrow keys in step 03.
+本步骤将处理Esc键，我们将在step03中学习如何处理方向键。
 
-But, before getting into the implementation, we need to know a bit about terminal modes.
+但在开始实现之前，我们需要了解一些关于终端模式的知识。
 
-## Intro to terminal modes
+## 终端模式简介
 
-Terminals can run in three possible [modes](https://en.wikipedia.org/wiki/Terminal_mode):
+终端可以运行在三种可能的[模式](https://en.wikipedia.org/wiki/Terminal_mode)下：
 
-1. Cooked Mode
-2. Cbreak Mode
-3. Raw Mode
+1. 熟模式（Cooked Mode）
+2. 半熟模式（Cbreak Mode） 
+3. 生模式（Raw Mode）
 
-The cooked mode is the one that we are used to use. In this mode every input that the terminal receives is preprocessed, meaning that the system intercepts special characters to give them special meaning.
+熟模式是我们最常用的模式。在这种模式下，终端接收的所有输入都会经过预处理，系统会拦截特殊字符并赋予它们特殊含义。
 
-Note: Special characters include backspace, delete, Ctrl+D, Ctrl+C, arrow keys and so on...
+注意：特殊字符包括退格键、删除键、Ctrl+D、Ctrl+C、方向键等...
 
-The raw mode is the opposite: data is passed as is, without any kind of preprocessing.
+> 译注：cooked mode，举个例子，在有程序执行的时候输入Ctrl+C会终止程序，而不是在控制台上输出Ctrl和C
 
-The cbreak mode is the middle ground. Some characters are preprocessed and some are not. For instance, Ctrl+C still results in program abortion, but the arrow keys are passed to the program as is.
+生模式则完全相反：数据会原样传递，不做任何预处理。
 
-We will use the cbreak mode to allow us to handle the escape sequences corresponding to the escape and arrow keys.
+半熟模式是折中方案。有些字符会被预处理，有些则不会。例如，Ctrl+C仍会导致程序中止，但方向键会原样传递给程序。
 
-## Task 01: Enabling Cbreak Mode
+我们将使用半熟模式来处理Esc键和方向键对应的转义序列。
 
-To enable the cbreak mode we are going to call an external command that controls terminal behaviour, the `stty` command. We are also going to disable terminal echo so we don't polute the screen with the output of key presses.
+## 任务01：启用半熟模式
 
-Here is the definition of our `init`:
+为了启用半熟模式，我们将调用控制终端行为的外部命令`stty`。我们还将禁用终端回显，避免按键输出污染屏幕。
+
+以下是我们的`initialise`函数定义：
 
 ```go
 func initialise() {
@@ -49,18 +51,22 @@ func initialise() {
 
     err := cbTerm.Run()
     if err != nil {
-        log.Fatalln("unable to activate cbreak mode:", err)
+        log.Fatalln("无法启用半熟模式:", err)
     }
 }
 ```
 
-You will need to add the import "os/exec" if your IDE is not configured to add it automatically.
+> 译注
+> cbreak 启用半熟模式，输入字符无需等待回车即可被程序读取，但是仍会处理部分控制字符（如 Ctrl+C 仍会中断程序）。
+> -echo 关闭回显，用户输入的字符不会显示在终端上（如密码输入场景）.
 
-The `log.Fatalln` function will terminate the program after printing the log, in case of error. This is important here because without the cbreak mode the game is unplayable. As this is the very first function we will call in our program, we are not worried about skipping any deferred calls.
+如果你的IDE没有自动添加导入，您需要手动添加"os/exec"包。
 
-## Task 02: Restoring Cooked Mode
+`log.Fatalln`函数会在打印日志后终止程序（如果发生错误）。这在这里很重要，因为没有半熟模式游戏就无法进行。由于这是我们程序中最先调用的函数，我们不必担心跳过任何延迟调用。
 
-Restoring the cooked mode is a pretty straightforward process. It is the same as enabling the cbreak mode, but with the flags reversed:
+## 任务02：恢复熟模式
+
+恢复熟模式的过程非常简单。与启用半熟模式类似，只是参数相反：
 
 ```go
 func cleanup() {
@@ -69,28 +75,29 @@ func cleanup() {
 
     err := cookedTerm.Run()
     if err != nil {
-        log.Fatalln("unable to restore cooked mode:", err)
+        log.Fatalln("无法恢复熟模式:", err)
     }
 }
 ```
 
-Now we need to call both functions in the `main` function:
+现在我们需要在`main`函数中调用这两个函数：
 
 ```go
 func main() {
-    // initialise game
+    // 初始化游戏
     initialise()
     defer cleanup()
 
-    // load resources
+    // 加载资源
     // ...
+}
 ```
 
-## Task 03: Reading from Stdin
+## 任务03：从标准输入读取
 
-The process of reading from the standard input involves calling the function `os.Stdin.Read` with a given read buffer.
+从标准输入读取的过程涉及调用`os.Stdin.Read`函数并传入读取缓冲区。
 
-The `os.Stdin.Read` returns two values: the number of bytes read and an error value. Have a look at the code for the `readInput` function below:
+`os.Stdin.Read`返回两个值：读取的字节数和错误值。请看下面的`readInput`函数代码：
 
 ```go
 func readInput() (string, error) {
@@ -109,34 +116,34 @@ func readInput() (string, error) {
 }
 ```
 
-The `make` function is a [built-in function](https://golang.org/pkg/builtin/#make) that allocates and initialises objects. It is only used for slices, maps and channels. In this case we are creating an array of bytes with size 100 and returning a slice that points to it.
+`make`是一个[内置函数](https://golang.org/pkg/builtin/#make)，用于分配和初始化对象。它只用于slices, maps 和 channels。在本例中，我们创建了一个大小为100的字节数组，并返回指向它的切片。
 
-After the usual error handling (we are just passing the error up on the call stack), we are testing if we read just one byte and if that byte is the escape key. (0x1b is the hexadecimal code that represents Esc).
+在常规的错误处理后（我们只是将错误传递给调用栈），我们测试是否只读取了一个字节以及该字节是否为Esc键（0x1b是表示Esc的十六进制代码）。
 
-We return "ESC" if the Esc key was pressed or an empty string otherwise.
+如果按下Esc键，我们返回"ESC"，否则返回空字符串。
 
-Now you may wonder why allocating a buffer of 100 bytes, or why testing the count of exact one byte...
+现在您可能会想，为什么要分配100字节的缓冲区？或者为什么测试恰好一个字节的计数...
 
-What if the buffer suddenly has 5 elements and one of them is the Esc key? Shouldn't we care to process that? Will that key press be lost?
+如果缓冲区突然有5个元素，其中一个是Esc键怎么办？我们不应该处理这种情况吗？这个按键会丢失吗？
 
-The short answer is we shouldn't care. Please keep in mind that this is a game. Depending on the processing speed and the length of your keyboard buffer, if we processed events sequentially we could introduce movement lag, i.e., by having a queue of arrow key presses that were not processed yet.
+简短的答案是我们不应该关心。请记住这是一个游戏。根据处理速度和键盘缓冲区的长度，如果我们按顺序处理事件，可能会引入移动延迟（即有一系列尚未处理的方向键按下）。
 
-Since we are reading the input on a loop, there is no damage in dropping all the key presses in a queue and just focusing on the last one. That will make the game respond better than if we were concerned about every key press.
+由于我们是在循环中读取输入，丢弃队列中的所有按键而只关注最后一个按键不会有任何损害。这将使游戏响应比我们关心每个按键时更好。
 
-## Task 04: Updating the Game Loop
+## 任务04：更新游戏循环
 
-Now it's time to update the game loop to have the `readInput` function called every iteration. Please note that if an error occurs we need to break the loop as well.
+现在是时候更新游戏循环了，在每次迭代中调用`readInput`函数。请注意，如果发生错误，我们也需要跳出循环。
 
 ```go
-// process input
+// 处理输入
 input, err := readInput()
 if err != nil {
-    log.Print("error reading input:", err)
+    log.Print("读取输入错误:", err)
     break
 }
 ```
 
-Finally, we can get rid of that permanent `break` statement and start testing for the "ESC" key press.
+最后，我们可以去掉那个永久的`break`语句，开始测试"ESC"按键。
 
 ```go
 if input == "ESC" {
@@ -144,32 +151,32 @@ if input == "ESC" {
 }
 ```
 
-## Task 05: Clearing the Screen
+## 任务05：清屏
 
-Since we now have a proper game loop, we need to clear the screen after each loop so we have a blank screen for drawing in the next iteration. In order to do that, we are going to use some special "escape sequences".
+既然我们现在有一个适当的游戏循环，我们需要在每次循环后清屏，以便在下一次迭代中有一个空白屏幕用于绘制。为此，我们将使用一些特殊的"转义序列"。
 
-[Escape sequences](https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences) are called like that because they start with the ESC character (0x1b) followed by one or more characters. Those characters work as commands for the terminal emulator.
+[转义序列](https://zh.wikipedia.org/wiki/ANSI%E8%BD%AC%E4%B9%89%E5%BA%8F%E5%88%97)之所以这样命名，是因为它们以ESC字符（0x1b）开头，后跟一个或多个字符。这些字符作为终端模拟器的命令。
 
-You actually don't need to worry about the sequences we are going to use, as we are going to import another package called `simpleansi` that does the work for us:
+实际上您不需要担心我们将使用的序列，因为我们将导入另一个名为`simpleansi`的包来帮我们完成工作：
 
 ```go
 import "github.com/danicat/simpleansi"
 ```
 
 ---
-### Some notes on external packages
+### 关于外部包的一些说明
 
-This time we are not importing a package from the standard library, but an external package instead. If you look at `simpleansi`'s [implementation](https://github.com/danicat/simpleansi), you will notice that every function starts with a capital letter, like `ClearScreen` or `MoveCursor`.
+这次我们不是从标准库导入包，而是导入一个外部包。如果您查看`simpleansi`的[实现](https://github.com/danicat/simpleansi)，您会注意到每个函数都以大写字母开头，如`ClearScreen`或`MoveCursor`。
 
-That is important in Go because the capitalisation of a word defines if that function or variable has **public** or **private** escope.
+这在Go中很重要，因为单词的大小写决定了该函数或变量是**公共**还是**私有**作用域。
 
-Words starting with a lower case character are private to the package defining it, and words starting with an upper case character are public. That may be confusing to people coming from other languages like java, but if you follow naming conventions like "classes (structs) always start with a capital letter" you may end up inadvertedly making every type in your code public, which is probably not what you want.
+以小写字母开头的单词对定义它的包是私有的，以大写字母开头的单词是公共的。这对于来自Java等其他语言的开发人员可能会感到困惑，但如果您遵循"类（结构体）总是以大写字母开头"这样的命名约定，您可能会无意中使代码中的每个类型都成为公共的，这可能不是您想要的。
 
-As we are importing a package from a different project, we need to tell Go about it. As the library is in a different project it has its own lifecycle. The library may change and the change may break our project. To cater with this Go has introduced a dependency management based on Go modules (for a tutorial see: https://go.dev/doc/tutorial/create-module). Basically we need a file go.mod a go.sum file describing the dependencies in the root directory of our project. These files have been already created.
+由于我们是从不同项目导入包，我们需要告诉Go。由于库位于不同的项目中，它有自己的生命周期。库可能会发生变化，这种变化可能会破坏我们的项目。为了解决这个问题，Go引入了基于Go模块的依赖管理（教程见：https://go.dev/doc/tutorial/create-module）。基本上我们需要在项目根目录下有一个go.mod和go.sum文件来描述依赖关系。这些文件已经创建好了。
 
 ---
 
-We will update the printScreen function to call `simpleansi.ClearScreen` before printing, so we are sure to be using a blank screen each frame:
+我们将更新printScreen函数，在打印前调用`simpleansi.ClearScreen`，确保每一帧都使用空白屏幕：
 
 ```go
 func printScreen() {
@@ -180,10 +187,10 @@ func printScreen() {
 }
 ```
 
-Now run the game again and try hitting the `ESC` key.
+现在再次运行游戏并尝试按下`ESC`键。
 
-Please note that if you hit Ctrl+C by any chance the program will terminate without calling the cleanup function, so you won't be able to see what you are typing in the terminal (because of the `-echo` flag).
+请注意，如果您不小心按下了Ctrl+C，程序将在不调用cleanup函数的情况下终止，因此您将无法看到在终端中输入的内容（这是因为`-echo`标志）。
 
-If you get into that situation either close the terminal and reopen it or just run the game again and exit gracefully using the `ESC` key.
+如果遇到这种情况，可以关闭终端并重新打开，或者再次运行游戏并使用`ESC`键优雅退出。
 
-[Take me to step 03!](../step03/README.md)
+[去步骤03！](../step03/README.md)
