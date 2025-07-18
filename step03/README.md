@@ -1,21 +1,21 @@
-# Step 03: Adding Movement
+# 步骤03：添加移动功能
 
-In this lesson you will learn how to:
+在本课中，您将学习如何：
 
-- Create a struct
-- Use the switch statement
-- Handle the arrow keys
-- Use named return values
+- 创建结构体
+- 使用switch语句
+- 处理方向键输入
+- 使用命名返回值
 
-## Overview
+## 概述
 
-We have a maze, we can quit the game gracefully... but nothing very exciting is happening, right? So let's spice this thing up a bit and add some movement!
+我们已经有了迷宫，可以优雅地退出游戏...但还没有什么令人兴奋的事情发生，对吧？让我们为游戏增添一些趣味，添加移动功能！
 
-In this step we are adding the player character and enabling its movement with the arrow keys.
+在这一步中，我们将添加玩家角色并启用方向键控制移动。
 
-## Task 01: Tracking player position
+## 任务01：追踪玩家位置
 
-The first step in our journey is to create a variable to hold the player data. Since we will be tracking 2D coordinates (row and column), we will define a struct to hold that information:
+第一步是创建一个变量来保存玩家数据。由于我们需要追踪二维坐标（行和列），我们将定义一个结构体来保存这些信息：
 
 ```go
 type sprite struct {
@@ -26,12 +26,12 @@ type sprite struct {
 var player sprite
 ```
 
-We are also defining the player as a global variable, just for the sake of simplicity.
+为了简单起见，我们将player定义为全局变量。
 
-Next we need to capture the player position as soon as we load the maze, in the `loadMaze` function:
+接下来，我们需要在加载迷宫时捕获玩家位置，在`loadMaze`函数中：
 
 ```go
-// traverse each character of the maze and create a new player when it locates a `P`
+// 遍历迷宫的每个字符，当找到'P'时创建新玩家
 for row, line := range maze {
     for col, char := range line {
         switch char {
@@ -42,9 +42,9 @@ for row, line := range maze {
 }
 ```
 
-Note that this time we are using the full form of the `range` operator, as we are interested in which row and column we found the player.
+注意这次我们使用了完整的`range`操作符形式，因为我们需要知道找到玩家的具体行和列。
 
-Here is the complete `loadMaze` just for reference:
+以下是完整的`loadMaze`函数供参考：
 
 ```go
 func loadMaze(file string) error {
@@ -75,21 +75,21 @@ func loadMaze(file string) error {
 
 ---
 
-### Optional: A note about visibility
+### 可选：关于可见性的说明
 
-We are keeping things simple here just for the sake of the tutorial. Since everything is a single file we are not taking into account the visibility of variables, i.e., if they are public or private.
+为了教程的简洁性，我们在这里保持简单。由于所有内容都在单个文件中，我们没有考虑变量的可见性（即它们是公共的还是私有的）。
 
-Nevertheless, Go has an interesting mechanic in regards to defining visibility. Instead of having a public keyword, it considers public every symbol whose name starts with a capital letter. On the other hand, if a name starts with a lowercase character, it is a private symbol.
+不过，Go在定义可见性方面有一个有趣的机制。它没有public关键字，而是将名称以大写字母开头的每个符号视为公共的。另一方面，如果名称以小写字符开头，则它是私有符号。
 
-That's why every library function name we've used so far begins with a capital letter. That's also why your IDE may complain about missing comments if you define any variable, function or type with an initial uppercase character. In the Go idiom, public symbols should always be commented, as those are later extracted to become the package documentation.
+这就是为什么到目前为止我们使用的所有库函数名称都以大写字母开头。这也是为什么如果您定义任何变量、函数或类型时使用首字母大写，您的IDE可能会抱怨缺少注释。在Go的惯例中，公共符号应该始终有注释，因为这些注释稍后会被提取成为包文档。
 
-In this particular case, we are using lowercase symbols for all our variables, types and functions since it doesn't make any sense to export a symbol from the package `main`.
+在这个特定情况下，我们对所有变量、类型和函数都使用小写符号，因为从`main`包导出符号没有意义。
 
 ---
 
-## Task 02: Handling arrow key presses
+## 任务02：处理方向键输入
 
-Next, we need to modify `readInput` to handle the arrow keys:
+接下来，我们需要修改`readInput`来处理方向键：
 
 ```go
 if cnt == 1 && buffer[0] == 0x1b {
@@ -110,9 +110,9 @@ if cnt == 1 && buffer[0] == 0x1b {
 }
 ```
 
-The escape sequence for the arrow keys are 3 bytes long, starting with `ESC+[` and then a letter from A to D.
+方向键的转义序列是3字节长，以`ESC+[`开头，然后是A到D之间的字母。
 
-We now need a function to handle the movement:
+现在我们需要一个函数来处理移动：
 
 ```go
 func makeMove(oldRow, oldCol int, dir string) (newRow, newCol int) {
@@ -150,13 +150,13 @@ func makeMove(oldRow, oldCol int, dir string) (newRow, newCol int) {
 }
 ```
 
-Note: If you are used to the switch statement in other languages, please beware that in Go there is an implicit `break` after each `case` condition. So we don't need to explicitly break after each block. If we want to fall through the next `case` block we can use the `fallthrough` keyword.
+注意：如果您熟悉其他语言中的switch语句，请注意在Go中每个`case`条件后都有一个隐式的`break`。所以我们不需要在每个块后显式地break。如果我们想要继续执行下一个`case`块，可以使用`fallthrough`关键字。
 
-The function above takes advantage of `named return values` to return the new position (`newRow` and `newCol`) after the move. Basically the function "tries"  the move first, and if by any chance the new position hits a wall (`#`) the move is cancelled.
+上面的函数利用了`命名返回值`来返回移动后的新位置（`newRow`和`newCol`）。基本上，函数先"尝试"移动，如果新位置碰到墙(`#`)，则取消移动。
 
-It also handles the property that if the character moves outside the range of the maze it appears on the opposite side.
+它还处理了当角色移动到迷宫范围外时出现在对面的特性。
 
-The last piece in the movement puzzle is to define a function to move the player:
+移动功能的最后一部分是定义一个移动玩家的函数：
 
 ```go
 func movePlayer(dir string) {
@@ -164,11 +164,11 @@ func movePlayer(dir string) {
 }
 ```
 
-## Task 03: Updating the maze
+## 任务03：更新迷宫显示
 
-We have all the movement logic in place, but we need to make the screen reflect that. We will refactor the `printScreen` function to print only the things that we want to print, instead of the whole map.
+我们已经有了所有的移动逻辑，但需要让屏幕反映这些变化。我们将重构`printScreen`函数，只打印我们想要打印的内容，而不是整个地图。
 
-That will give us more control, enabling us to print the player at an arbitrary position with the `moveCursor` function. See the code below:
+这将给我们更多的控制权，使我们能够使用`moveCursor`函数在任意位置打印玩家。请看下面的代码：
 
 ```go
 func printScreen() {
@@ -188,45 +188,44 @@ func printScreen() {
     simpleansi.MoveCursor(player.row, player.col)
     fmt.Print("P")
 
-
-    // Move cursor outside of maze drawing area
+    // 将光标移动到迷宫绘制区域外
     simpleansi.MoveCursor(len(maze)+1, 0)
 }
 ```
 
-For the time being, we are ignoring anything that is not a wall or the player.
+目前，我们忽略了除墙和玩家之外的所有内容。
 
-## Task 04: Animation!
+## 任务04：动画效果！
 
-Finally, we need to call `movePlayer` from the game loop:
+最后，我们需要在游戏循环中调用`movePlayer`：
 
 ```go
-// game loop
+// 游戏循环
 for {
-    // update screen
+    // 更新屏幕
     printScreen()
 
-    // process input
+    // 处理输入
     input, err := readInput()
     if err != nil {
         log.Println("error reading input:", err)
         break
     }
 
-    // process movement
+    // 处理移动
     movePlayer(input)
 
-    // process collisions
+    // 处理碰撞
 
-    // check game over
+    // 检查游戏结束
     if input == "ESC" {
         break
     }
 
-    // repeat
+    // 重复
 }
 ```
 
-We are good to Go!
+我们准备好出发了！
 
-[Take me to step 04!](../step04/README.md)
+[带我去步骤04！](../step04/README.md)

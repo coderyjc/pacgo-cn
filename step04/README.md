@@ -1,32 +1,32 @@
-# Step 04: Ghosts!
+# 步骤04：添加幽灵敌人
 
-In this lesson you will learn how to:
+在本课中，您将学习如何：
 
-- Create a map (dictionary)
-- Generate random numbers
-- Use pointers
+- 创建映射表（字典）
+- 生成随机数
+- 使用指针
 
-## Overview
+## 概述
 
-Now that we can move our player, it's time to do something about our enemies (ghosts).
+既然我们已经可以让玩家移动，现在是时候处理敌人（幽灵）了。
 
-We will use the same move mechanic as the player one, the `makeMove` function, but instead of reading input from the keyboard we will use a simple algorithm: generate a random number between 0 and 3 and assign a direction to each of those values.
+我们将使用与玩家相同的移动机制`makeMove`函数，但不是从键盘读取输入，而是使用一个简单算法：生成0到3之间的随机数，并为每个值分配一个方向。
 
-If the Ghost hits a wall it doesn't matter, it will just try again on the next iteration.
+如果幽灵碰到墙也没关系，它会在下一次迭代中再次尝试。
 
-## Task 01: Making Ghosts
+## 任务01：创建幽灵
 
-Just like we've created a struct to hold our player data, we will create a similar one for ghosts. The only difference is that instead of holding a player global variable in memory we will have a slice of pointers to sprites. That way we can update each ghost's position in a very efficient way.
+就像我们为玩家数据创建结构体一样，我们将为幽灵创建类似的结构。唯一的区别是我们不会在内存中保存玩家全局变量，而是保存一个指向精灵的指针切片。这样可以非常高效地更新每个幽灵的位置。
 
-First, the declaration:
+首先声明：
 
 ```go
 var ghosts []*sprite
 ```
 
-Note the `*` symbol denoting that `[]*sprite` is a slice of **pointers** to sprite objects.
+注意`*`符号表示`[]*sprite`是一个指向sprite对象的指针切片。
 
-Next, loading. In the `loadMaze` function, add a new case to the switch statement for handling `G` symbols on the map:
+接下来是加载。在`loadMaze`函数中，为处理地图上的`G`符号添加一个新的case：
 
 ```go
 for row, line := range maze {
@@ -41,11 +41,11 @@ for row, line := range maze {
 }
 ```
 
-Please note the ampersand (`&`) operator. This means that instead of adding a sprite object to the slice we are adding a pointer to it.
+请注意与符号(`&`)操作符。这意味着我们不是向切片添加sprite对象，而是添加指向它的指针。
 
-Go is a garbage collected language, which means it can automatically de-allocate a piece of memory when it is no longer used. Because of that we can use pointers in a much safer way than, for instance, in C++. We are also not allowed to do math on pointers. In effect, a pointer in Go works almost like a reference.
+Go是一种垃圾回收语言，这意味着它可以自动释放不再使用的内存。因此，我们可以比在C++等语言中更安全地使用指针。我们也不能对指针进行数学运算。实际上，Go中的指针几乎就像引用一样工作。
 
-Now, since we are handling `G`s in the `loadMaze` function we also need to print them in `printScreen`. Just add the following block after printing the player:
+现在，既然我们在`loadMaze`函数中处理`G`，我们也需要在`printScreen`中打印它们。在打印玩家之后添加以下代码块：
 
 ```go
 for _, g := range ghosts {
@@ -54,9 +54,9 @@ for _, g := range ghosts {
 }
 ```
 
-## Task 02: A very smart AI
+## 任务02：非常"智能"的AI
 
-We've mentioned before that we would be using a random number generator to control our ghosts. That sounds way more complex than it actually is. Have a look at the code:
+我们之前提到过将使用随机数生成器来控制幽灵。这听起来比实际复杂得多。请看代码：
 
 ```go
 func drawDirection() string {
@@ -71,13 +71,13 @@ func drawDirection() string {
 }
 ```
 
-The function `rand.Intn` from the `math/rand` package generates a random number between the interval `[0, n)`, where `n` is the parameter given to the function. (Note that the interval is open ended, so `n` is not included).
+`math/rand`包中的`rand.Intn`函数生成一个区间`[0, n)`内的随机数，其中`n`是传递给函数的参数。（注意区间是左闭右开的，所以不包括`n`）。
 
-We are using a trick to map the integer numbers to the actual movements using a `map`. A map is a data structure that maps one value to another. I.e., in the case above, the map `move` maps an integer to a string.
+我们使用了一个技巧，通过`map`将整数值映射到实际移动方向。map是一种将一个值映射到另一个值的数据结构。在上面的例子中，map`move`将整数映射到字符串。
 
-## Task 03: Let's add some movement!
+## 任务03：添加移动功能！
 
-Finally, we need a function to process the ghost movement. The `moveGhosts` function is presented below:
+最后，我们需要一个函数来处理幽灵移动。`moveGhosts`函数如下：
 
 ```go
 func moveGhosts() {
@@ -88,36 +88,36 @@ func moveGhosts() {
 }
 ```
 
-Now update the game loop to call `moveGhosts`:
+现在更新游戏循环以调用`moveGhosts`：
 
 ```go
-// game loop
+// 游戏循环
 for {
-    // update screen
+    // 更新屏幕
     printScreen()
 
-    // process input
+    // 处理输入
     input, err := readInput()
     if err != nil {
         log.Println("error reading input:", err)
         break
     }
 
-    // process movement
+    // 处理移动
     movePlayer(input)
     moveGhosts()
 
-    // process collisions
+    // 处理碰撞
 
-    // check game over
+    // 检查游戏结束
     if input == "ESC" {
         break
     }
 
-    // repeat
+    // 重复
 }
 ```
 
-We are done! Now we have ghosts that move! How scary -_-'''
+完成了！现在我们有了会移动的幽灵！多么可怕 -_-'''
 
-[Take me to step 05!](../step05/README.md)
+[带我去步骤05！](../step05/README.md)

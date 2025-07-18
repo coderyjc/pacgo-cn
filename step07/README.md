@@ -1,19 +1,19 @@
-# Step 07: Finally, emojis!
+# 步骤07：终于加入emoji！
 
-In this lesson you will learn how to:
+在本课中您将学习如何：
 
-- Load a json file
-- Print emojis!!!
+- 加载json文件
+- 打印emoji！！！
 
-## Overview
+## 概述
 
-So, we've managed to create a proper game in the terminal. But I've promised emojis, where are they? Well, the time has come, finally!
+我们已经成功在终端中创建了一个像样的游戏。但我承诺的emoji在哪里呢？终于，是时候加入它们了！
 
-In this step we will create a file called `config.json`. In this file we will store mappings for each symbol we use in our game. In 2D games, we usually call the moving pieces "sprites".
+在这一步中，我们将创建一个名为`config.json`的文件。这个文件将存储游戏中使用的每个符号的映射关系。在2D游戏中，我们通常将移动的物体称为"精灵"。
 
-Since most of the terminals nowadays support unicode, we can use emojis as our sprites without needing to resort to any graphical library.
+由于现今大多数终端都支持Unicode，我们可以直接使用emoji作为精灵，而无需借助任何图形库。
 
-The provided `config.json` file should look like this:
+提供的`config.json`文件内容如下：
 
 ```json
 {
@@ -28,20 +28,20 @@ The provided `config.json` file should look like this:
 }
 ```
 
-This is the default mapping but please feel free to toy with the entire emoji palette. We have infinite possibilities!
+这是默认的映射关系，但您可以自由尝试各种emoji组合。我们有无限的可能性！
 
-One important aspect about the config file is the `use_emoji` configuration. We are using this flag to signal to the game when we are using emojis. This is necessary because emojis generally use more than one character in the screen (most of them use 2).
+配置文件中的一个重要方面是`use_emoji`配置项。我们使用这个标志来告知游戏是否使用emoji。这是必要的，因为emoji通常会在屏幕上占用多个字符（大多数占用2个字符）。
 
-Using that flag we can have alternate code paths that make adjustments to compensate that difference. Otherwise the maze would look distorted.
+使用这个标志，我们可以有替代的代码路径来进行调整以补偿这种差异。否则迷宫看起来会变形。
 
-## Task 01: Load a json
+## 任务01：加载json
 
-Go has support for loading json in the standard library.
+Go标准库支持加载json。
 
-We first need to define a struct to hold the json data. The text between the backticks (\`) is called a `struct tag`. It is used by the json decoder to know which field of the struct corresponds to each field in the json file.
+首先我们需要定义一个结构体来保存json数据。反引号(\`)之间的文本称为`结构体标签`。它被json解码器用来确定结构体的哪个字段对应json文件中的哪个字段。
 
 ```go
-// Config holds the emoji configuration
+// Config保存emoji配置
 type Config struct {
     Player   string `json:"player"`
     Ghost    string `json:"ghost"`
@@ -56,9 +56,9 @@ type Config struct {
 var cfg Config
 ```
 
-Note that we used public members for the `Config` struct. That is required for the json decoder to work.
+注意我们为`Config`结构体使用了公开成员。这是json解码器正常工作所必需的。
 
-The code below parses the json and stores it in the `cfg` global variable.
+下面的代码解析json并将其存储在全局变量`cfg`中：
 
 ```go
 func loadConfig(file string) error {
@@ -78,19 +78,19 @@ func loadConfig(file string) error {
 }
 ```
 
-Now add the `loadConfig` call in the initialization part of the main function, after `loadMaze`:
+现在在main函数的初始化部分，在`loadMaze`之后添加`loadConfig`调用：
 
 ```go
 err = loadConfig("config.json")
 if err != nil {
-    log.Println("failed to load configuration:", err)
+    log.Println("加载配置失败:", err)
     return
 }
 ```
 
-## Task 02: Adjusting the horizontal displacement
+## 任务02：调整水平位移
 
-We need to create a custom `moveCursor` function to correct the horizontal displacement when the emoji flag is set:
+我们需要创建一个自定义的`moveCursor`函数，在启用emoji标志时校正水平位移：
 
 ```go
 func moveCursor(row, col int) {
@@ -102,13 +102,13 @@ func moveCursor(row, col int) {
 }
 ```
 
-Make sure you replace all calls to `simpleansi.MoveCursor` with calls to the new `moveCursor` function (except for the ones inside the new function).
+确保将所有`simpleansi.MoveCursor`调用替换为新的`moveCursor`函数（新函数内部的调用除外）。
 
-Scaling the `col` value by 2 times will ensure we position every character in the right place. It will also have the side effect of making the maze look bigger.
+将`col`值乘以2可以确保我们将每个字符定位在正确的位置。这也会产生使迷宫看起来更大的副作用。
 
-## Task 03: Replace hardcoded characters with configuration
+## 任务03：用配置替换硬编码字符
 
-The final part is to replace the hardcoded characters with their config counterparts in the `printScreen` function. We are also going to use the `simpleansi.WithBlueBackground` function to change the colour of the walls to make it more representative of the original game.
+最后一步是在`printScreen`函数中用配置项替换硬编码的字符。我们还将使用`simpleansi.WithBlueBackground`函数改变墙壁的颜色，使其更接近原版游戏。
 
 ```go
 func printScreen() {
@@ -136,16 +136,16 @@ func printScreen() {
     }
 
     moveCursor(len(maze)+1, 0)
-    fmt.Println("Score:", score, "\tLives:", lives)
+    fmt.Println("分数:", score, "\t生命:", lives)
 }
 ```
 
-## Task 04: Game over and pills
+## 任务04：游戏结束和能量豆
 
-As an added bonus, let's add a game over sprite within the game over condition.
+作为额外奖励，让我们在游戏结束条件中添加游戏结束精灵。
 
 ```go
-// check game over
+// 检查游戏结束
 if numDots == 0 || lives == 0 {
     if lives == 0 {
         moveCursor(player.row, player.col)
@@ -156,7 +156,7 @@ if numDots == 0 || lives == 0 {
 }
 ```
 
-Also, let's add the code to treat the power up pill as a dot that worth more points, as a placeholder for the actual power up mechanics. We are just doing this now to have a sense of a complete game, but we'll come to implement the proper power up mechanics at a later step.
+同时，让我们添加代码将能量豆视为得分更高的豆子，作为实际能量机制的占位符。我们现在这样做是为了获得完整游戏的感觉，但稍后我们会实现真正的能量机制。
 
 ```go
 func movePlayer(dir string) {
@@ -178,8 +178,8 @@ func movePlayer(dir string) {
 }
 ```
 
-Once interesting thing about the code above is that we are defining an inline function to do the removal of both the dot and the X from the game when we have a collision. We could also have repeated the code, but this makes it more readable and maintainable.
+上面代码中一个有趣的地方是，我们定义了一个内联函数来处理豆子和X的移除。我们也可以重复代码，但这样使代码更可读和可维护。
 
-We have emojis! How great is that? :)
+我们有了emoji！是不是很棒？ :)
 
-[Take me to step 08!](../step08/README.md)
+[带我去步骤08！](../step08/README.md)

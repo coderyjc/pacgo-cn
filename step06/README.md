@@ -1,28 +1,28 @@
-# Step 06: Making things real(time)
+# 步骤06：实现实时游戏机制
 
-In this lesson you will learn how to:
+在本课中，您将学习如何：
 
-- Use goroutines
-- Use anonymous functions (lambdas)
-- Use channels
-- Use the select statement to read channels async
-- Use package time
+- 使用goroutine
+- 使用匿名函数（lambda）
+- 使用channel
+- 使用select语句异步读取channel
+- 使用time包
 
-## Overview
+## 概述
 
-At this point of the tutorial we kind of have a complete game: it has a clear objective, winning and losing conditions and the player input works correctly.
+目前我们的游戏已经有了基本框架：明确的目标、胜利和失败条件，以及正常的玩家输入控制。
 
-But it has one major issue: the enemies move only when the player moves. That doesn't look like very gamey to me, so let's do this properly.
+但存在一个主要问题：敌人只在玩家移动时才移动。这看起来不太像真正的游戏，让我们来解决这个问题。
 
-This issue happens because the read input is a blocking operation. We need to make it asynchronous somehow... if only we had some functionality to run things async in go... Oh, wait! We do! :)
+这个问题是因为读取输入是一个阻塞操作。我们需要以某种方式使其异步...如果我们有Go的异步功能就好了...等等！我们确实有！
 
-Here comes the fabulous channels and goroutines to the rescue!
+这就是神奇的channel和goroutine登场的时候了！
 
-Goroutines are similar to threads, but they are much more lightweight. Under the hood, the go runtime spawns threads that will handle the goroutines, but a single thread can manage several goroutines, so their relation is bigger than 1:1.
+Goroutine类似于线程，但更加轻量级。在底层，Go运行时会创建线程来管理goroutine，但一个线程可以管理多个goroutine，所以它们的关系不是简单的1:1。
 
-But that's not the best part. The go language design makes it very easy to spawn a goroutine: you just need to add the keyword `go` before the function call and the function will run on a separate goroutine in an asynchronous manner.
+但最棒的部分是：Go语言设计使得创建goroutine非常简单——只需在函数调用前添加`go`关键字，函数就会在单独的goroutine中异步运行。
 
-Have a look at the code below:
+看看下面的代码：
 
 ```go
 func main() {
@@ -31,11 +31,11 @@ func main() {
 }
 ```
 
-This code has three goroutines: the first one is the one that runs the `main` function, the second one is the one that prints `hello` and the third one is the one that prints `world`.
+这段代码有三个goroutine：第一个运行`main`函数，第二个打印"hello"，第三个打印"world"。
 
-One important thing about goroutines is that since we are doing things async, it's safe to assume that the previous program will produce no output. That's because the `main` function has a high probability of terminating the program before any of the two goroutines are executed (because we have some overhead to launch the goroutines).
+关于goroutine的一个重要特性是：由于操作是异步的，可以确定上面的程序不会产生任何输出。因为`main`函数很可能在两个goroutine执行前就结束了（因为启动goroutine有一些开销）。
 
-We could introduce a delay to the main function:
+我们可以给main函数添加延迟：
 
 ```go
 func main() {
@@ -45,76 +45,74 @@ func main() {
 }
 ```
 
-That would guarantee that the goroutines would run, as we expect them to be faster than 100ms, but still, the output of this program is unpredictable, as we cannot count on the order that the goroutines are executed. 
+这样可以确保goroutine执行，因为我们预期它们能在100ms内完成，但程序的输出顺序仍然不可预测，因为我们无法控制goroutine的执行顺序。
 
-Once a `go` statement is executed, the responsibility for scheduling the goroutine for execution is passed to the go runtime. We don't have control over this and we can never assume a specific order of execution. Keep that in mind when writing async code.
+除了goroutine，我们还有channel。channel允许我们通过传递或接收值与goroutine通信。
 
-In addition to goroutines, we also have the channel constructs. Channels allow us to communicate with goroutines by passing or receiving values. Or both.
-
-To create a channel, we use the `make` built-in function:
+创建channel使用内置的`make`函数：
 
 ```go
 ch := make(chan int)
 ```
 
-Each channel has a type, and optionally a buffer size. If no size is specified it is assumed to be 1.
+每个channel都有类型，还可以有缓冲区大小。如果未指定大小，默认为1。
 
-Reading and writing to a channel can be a blocking operation, unless the channel is empty.
+对channel的读写可能是阻塞操作，除非channel为空。
 
-You write to a channel using the arrow operator:
+使用箭头操作符向channel写入：
 
 ```go
-// something is written to ch
+// 向ch写入内容
 ch <- something
 ```
 
-In the scenario above, if ch is empty the operation won't block, but if it's full it will block until the channel is consumed on the other side.
+如果ch为空，操作不会阻塞；如果已满，则会阻塞直到channel另一端被消费。
 
-Similarly, reading from a channel also uses the arrow operator:
+同样，从channel读取也使用箭头操作符：
 
 ```go
-// on a different goroutine
+// 在另一个goroutine中
 foo := <-ch
 ```
 
-When designing async processing we must be careful that two goroutines don't depend on each other in a way that they can both be held in a blocking state or produce inconsistent results. To know more about deadlocks and race conditions, please see [this answer](https://stackoverflow.com/a/3130212/4893628) on StackOverflow.
+设计异步处理时，必须注意避免两个goroutine互相依赖导致阻塞或产生不一致结果。更多关于死锁和竞态条件的信息，请参考[StackOverflow上的这个回答](https://stackoverflow.com/a/3130212/4893628)。
 
-## Task 01: Refactoring the input code
+## 任务01：重构输入代码
 
-Now that we know the basics about goroutines and channels, let's see them in action. First, let's remove the input handling code from the game loop and insert the code below before the start of the loop.
+现在了解了goroutine和channel的基础知识，让我们看看实际应用。首先，从游戏循环中移除输入处理代码，在循环开始前插入以下代码：
 
 ```go
 func main() {
-    // init code omitted for brevity...
+    // 初始化代码省略...
 
-    // process input (async)
+    // 异步处理输入
     input := make(chan string)
     go func(ch chan<- string) {
         for {
             input, err := readInput()
             if err != nil {
-                log.Println("error reading input:", err)
+                log.Println("读取输入错误:", err)
                 ch <- "ESC"
             }
             ch <- input
         }
     }(input)
 
-    // game loop
+    // 游戏循环
     for {
-        // loop code...
+        // 循环代码...
     }
 }
 ```
 
-This code will create a channel called `input` and pass it as a parameter to an anonymous function that is invoked with the `go` statement. That's a very common pattern for async processing in go.
+这段代码创建一个名为`input`的channel，并将其作为参数传递给用`go`语句调用的匿名函数。这是Go中异步处理的常见模式。
 
-The anonymous function then creates an infinite loop where it waits for input and writes it to the channel `ch` (given by the function parameter). In case of error, we just return the "ESC" code as we know this will terminate the program.
+匿名函数创建一个无限循环，等待输入并将其写入channel`ch`（函数参数）。如果出错，就返回"ESC"代码，因为我们知道这会终止程序。
 
-In the game loop we will replace the code that processes the player movement with the code below:
+在游戏循环中，我们将替换玩家移动处理的代码：
 
 ```go
-// process movement
+// 处理移动
 select {
 case inp := <-input:
     if inp == "ESC" {
@@ -125,25 +123,25 @@ default:
 }
 ```
 
-Imagine that the select statement is just like a switch statement, but for channels. This select statement has a non-blocking nature, because it has a default clause. This means that if the `input` channel has something to be read it will be read, otherwise the `default` case is processed, which in this case is an empty block.
+可以把select语句想象成switch语句，但是用于channel。这个select语句具有非阻塞特性，因为它有default子句。这意味着如果`input` channel有内容可读就会被读取，否则执行`default`case（这里是一个空块）。
 
-Finally, since we've moved the "ESC" logic to the block above, we will remove it from the game over conditions (as the `lives <= 0` already satisfies it).
+最后，由于我们将"ESC"逻辑移到了上面的代码块中，需要从游戏结束条件中移除它（因为`lives <= 0`已经包含了这个条件）。
 
-We will also introduce a delay of 200ms. Since now we are not waiting for input anymore the game will run too fast without it. The relevant snippet is below:
+我们还将引入200ms的延迟。因为现在不再等待输入，没有延迟游戏会运行得太快。相关代码如下：
 
 ```go
-    // update screen
+    // 更新屏幕
     printScreen()
 
-    // check game over
+    // 检查游戏结束
     if numDots == 0 || lives <= 0 {
         break
     }
 
-    // repeat
+    // 重复
     time.Sleep(200 * time.Millisecond)
 ```
 
-Try running the game now. Much more exciting, isn't it? :)
+现在尝试运行游戏。是不是更有趣了？ :)
 
-[Take me to step 07!](../step07/README.md)
+[带我去步骤07！](../step07/README.md)

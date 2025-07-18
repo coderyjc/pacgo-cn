@@ -1,16 +1,16 @@
-# Step 09: Buffer "The String Concatenation Slayer"
+# 步骤09：使用缓冲区优化字符串拼接
 
-In this lesson you will learn how to:
+在本课中您将学习如何：
 
-- Concatenate strings using a Buffer
+- 使用缓冲区进行字符串拼接
 
-## Overview
+## 概述
 
-In this lesson we will be adding support for multiple lives to the application. We will update the collision tracking code to decrement the number of lives instead of setting lives to 0 on a collision. We will also keep track of the starting player position to respawn player there if they die. Finally, we will add Player emojis to the game scoreboard to track the number of lives remaining instead of displaying lives as an integer value.
+本节课我们将为游戏添加多生命值支持。我们将更新碰撞检测代码，使碰到幽灵时减少生命值而非直接归零。同时记录玩家初始位置以便死亡后重生。最后，我们将在计分板用玩家表情符号显示剩余生命值，而非简单的数字。
 
-## Task 01: Create Point type and update Player struct to use Point type.
+## 任务01：创建Point类型并更新Player结构体
 
-We need to track the initial position of the player so we can reset the position after collision with a ghost. We will do this by updating the sprite struct to include `startRow` and `startCol` properties.
+我们需要追踪玩家的初始位置，以便在碰撞后重置位置。我们将更新sprite结构体添加起始行列属性：
 
 ```go
 type sprite struct {
@@ -21,11 +21,11 @@ type sprite struct {
 }
 ```
 
-We can then to fill those properties for our player (and ghosts) in the `loadMaze` function:
+然后在`loadMaze`函数中为玩家和幽灵填充这些属性：
 
 ```go
 func loadMaze() error {
-    //...omitted for brevity
+    //...省略部分代码
 
     for row, line := range maze {
         for col, char := range line {
@@ -44,20 +44,20 @@ func loadMaze() error {
 }
 ```
 
-Note that since we have the additional `startRow` and `startCol` properties we can't do a simple comparisson for collision detection anymore, as the player never starts in the same position as a ghost. We will make sure to reflect that difference in the next session.
+注意由于新增了起始位置属性，简单的坐标比较已不能用于碰撞检测，因为玩家和幽灵初始位置不会重合。我们将在下一节体现这一变化。
 
-## Task 02: Update initial `lives` to be greater than 1 and decrement lives on ghost collision
+## 任务02：设置初始生命值并在碰撞时减少
 
-As a starting point we will set our initial number of lives to 3
+首先设置初始生命值为3：
 
 ```go
 var lives = 3
 ```
 
-We will then update the code that processes collisions to decrement the number of lives by 1 every time a collision occurs. Finally we will check to make sure that we are not out of lives and reset our player emoji to the initial position to restart play.
+然后更新碰撞处理代码，每次碰撞减少1点生命值。最后检查生命值是否耗尽，未耗尽时将玩家重置到初始位置：
 
 ```go
-    // process collisions
+    // 处理碰撞
     for _, g := range ghosts {
         if player.row == g.row && player.col == g.col {
             lives = lives - 1
@@ -65,32 +65,32 @@ We will then update the code that processes collisions to decrement the number o
                 moveCursor(player.row, player.col)
                 fmt.Print(cfg.Death)
                 moveCursor(len(maze)+2, 0)
-                time.Sleep(1000 * time.Millisecond) //dramatic pause before resetting player position
+                time.Sleep(1000 * time.Millisecond) //重置前的戏剧性暂停
                 player.row, player.col = player.startRow, player.startCol
             }
         }
     }
 ```
 
-## Task 03: Update scoreboard to display Player emojis corresponding to number of lives
+## 任务03：用表情符号显示剩余生命值
 
-Previously the number of lives was being displayed as an integer in the game scoreboard. We will now be updating the scoreboard to display the number of lives with player emojis. We will be adding a `getLivesAsEmoji` function to concatenate the correct number of player emojis based on the lives remaining in the game. This function creates a buffer and then writes the player emoji string to the buffer based on the number of lives and then returns that value as a string. This function is called in the last line of the `printScreen` function to update the scoreboard.
+之前生命值在计分板显示为数字。现在我们将更新为用玩家表情符号显示剩余生命数。添加`getLivesAsEmoji`函数，使用缓冲区拼接正确数量的玩家表情符号：
 
 ```go
 func printScreen() {
-    //...omitted for brevity
+    //...省略部分代码
 
     moveCursor(len(maze)+1, 0)
 
-    livesRemaining := strconv.Itoa(lives) //converts lives int to a string
+    livesRemaining := strconv.Itoa(lives) //将生命值转为字符串
     if cfg.UseEmoji {
         livesRemaining = getLivesAsEmoji()
     }
 
-    fmt.Println("Score:", score, "\tLives:", livesRemaining)
+    fmt.Println("分数:", score, "\t生命:", livesRemaining)
 }
 
-//concatenate the correct number of player emojis based on lives
+// 根据生命值拼接对应数量的玩家表情
 func getLivesAsEmoji() string{
     buf := bytes.Buffer{}
     for i := lives; i > 0; i-- {
@@ -100,7 +100,7 @@ func getLivesAsEmoji() string{
 }
 ```
 
-So why use a buffer? Turns out there are other ways to concatenate strings in Go. The simplest option would be to just use `+` operator to concatenate two strings:
+为什么使用缓冲区？Go中还有其他字符串拼接方式，最简单的就是使用`+`运算符：
 
 ```go
 string1 := "pac"
@@ -108,7 +108,7 @@ string2 := "go"
 pacgo := string1 + string2 //"pacgo"
 ```
 
-For comparison, this is what the `getLivesAsEmoji` function would look like if we used the `+` operator approach.
+如果用`+`运算符实现`getLivesAsEmoji`函数：
 
 ```go
 func getLivesAsEmoji() string {
@@ -120,9 +120,6 @@ func getLivesAsEmoji() string {
 }
 ```
 
-This version of `getLivesAsEmoji` will be less efficient than the version of the function that uses a buffer. Part of the reason for this performance difference is due to memory allocation required for the string concatenation, as we've seen before that strings in Go are immutable.
+这个版本效率低于缓冲区版本，因为每次循环迭代都需要内存分配操作（Go中字符串不可变）。而缓冲区版本仅在初始化时进行一次内存分配。[这里](https://billglover.me/2019/03/13/learn-go-by-concatenating-strings/)有更详细的性能对比分析。
 
-In the version of the function using the `+` operator, there is a memory allocation operation happening for every iteration of the for loop. While for the buffer version of the function there is only a single memory allocation happening when buffer is initialized. A more detailed example of this performance difference is discussed [here](https://billglover.me/2019/03/13/learn-go-by-concatenating-strings/)
-
-
-[Take me to step 10!](../step10/README.md)
+[带我去步骤10！](../step10/README.md)

@@ -1,95 +1,95 @@
-# Step 08: Command line parameters
+# 步骤08：命令行参数配置
 
-In this lesson you will learn how to:
+在本课中您将学习如何：
 
-- Add flags to a command line application
+- 为命令行应用添加参数标志
 
-## Overview
+## 概述
 
-In the last lesson we added a configuration file `config.json` to handle our emoji translation. We also have a file named `config_noemoji.json` that translates to the original representation of the game.
+在上节课中，我们添加了`config.json`配置文件来处理表情符号转换。同时我们还有一个`config_noemoji.json`文件用于游戏原始字符表示。
 
-We also use the `maze01.txt` file for our maze representation. All those names are written directly to the source code, but dealing with these files in a hard coded way is not ideal, so we will change that.
+我们还使用`maze01.txt`文件作为迷宫地图。所有这些文件名都是直接硬编码在源代码中的，但这种处理方式并不理想，我们需要改进这一点。
 
-## Task 01: Create flags for each file
+## 任务01：为每个文件创建参数标志
 
-The `flag` package of the standard library is the one responsible for handling command line flags. We are going to use it to create two flags: `--config-file` and `--maze-file`.
+标准库中的`flag`包负责处理命令行标志。我们将使用它创建两个标志：`--config-file`和`--maze-file`。
 
-At the beginning of the file, just after the imports, add the following global variables.
+在文件开头导入语句之后，添加以下全局变量：
 
 ```go
 var (
-    configFile = flag.String("config-file", "config.json", "path to custom configuration file")
-    mazeFile   = flag.String("maze-file", "maze01.txt", "path to a custom maze file")
+    configFile = flag.String("config-file", "config.json", "自定义配置文件路径")
+    mazeFile   = flag.String("maze-file", "maze01.txt", "自定义迷宫文件路径")
 )
 ```
 
-The `String` function of the `flag` package accepts three parameters: a flag name, a default value and a description (to be exhibited when `--help` is used). It returns a pointer to a string which will hold the value of the flag.
+`flag`包的`String`函数接受三个参数：标志名称、默认值和描述（在使用`--help`时显示）。它返回一个字符串指针，将保存标志的值。
 
-Please note that this value is only filled after calling `flag.Parse`, which should be called from the `main` function:
+请注意，这个值只有在调用`flag.Parse`后才会被填充，应该在`main`函数中调用：
 
 ```go
 func main() {
     flag.Parse()
 
-    // initialise game
+    // 初始化游戏
     initialise()
     defer cleanup()
 
-    // rest of the function omitted...
+    // 函数其余部分省略...
 }
 ```
 
-Please note that we are calling `flag.Parse()` as the very first thing in the program. We want to do that because we want the flags to be parsed **before** changing the console to `cbreak` mode.
+注意我们将`flag.Parse()`作为程序的第一件事调用。我们希望在所有操作之前先解析标志，然后再将控制台切换到`cbreak`模式。
 
-When the flag is parsed in case of error it calls `os.Exit`, which means our `cleanup` function wouldn't be called leaving the terminal without echo and still in cbreak mode, which can be quite inconvenient.
+当解析标志出错时，它会调用`os.Exit`，这意味着我们的`cleanup`函数不会被调用，终端将保持无回显和cbreak模式，这会很不方便。
 
-With this change, by controlling the order things are called, we are making sure we init the cbreak mode only when the flags are parsed successfully.
+通过控制调用顺序，我们确保只有在标志成功解析后才初始化cbreak模式。
 
-## Task 02: Replacing the hard coded files with the flags
+## 任务02：用参数标志替换硬编码文件
 
-We've already handled the parsing, now we need to replace the hard coded values with their flag equivalents.
+我们已经处理了解析部分，现在需要用参数标志替换硬编码值。
 
-This is done by replacing the hard coded value with the value of the flag (please note the de-reference operator, as the flags are pointers).
+通过将硬编码值替换为标志值来实现（注意解引用操作符，因为标志是指针）。
 
-In `main`:
+在`main`函数中：
 
 ```go
-    // load resources
+    // 加载资源
     err := loadMaze(*mazeFile)
     if err != nil {
-        log.Println("failed to load maze:", err)
+        log.Println("加载迷宫失败:", err)
         return
     }
 
     err = loadConfig(*configFile)
     if err != nil {
-        log.Println("failed to load configuration:", err)
+        log.Println("加载配置失败:", err)
         return
     }
 ```
 
-Now try running in the command line:
+现在尝试在命令行中运行：
 
 ```sh
 go build
 ./step08 --help
 ```
 
-You should see something like:
+您应该会看到类似输出：
 
 ```sh
 $ ./step08 --help
 Usage of ./step08:
   -config-file string
-        path to custom configuration file (default "config.json")
+        自定义配置文件路径 (默认 "config.json")
   -maze-file string
-        path to a custom maze file (default "maze01.txt")
+        自定义迷宫文件路径 (默认 "maze01.txt")
 ```
 
-Now try running `step08` with `--config-file config_noemoji.json` first, and `--config-file config.json` later to see the difference. Better with emojis right?
+现在先尝试使用`--config-file config_noemoji.json`运行`step08`，然后再用`--config-file config.json`运行看看区别。使用表情符号更好对吧？
 
-You can also try copying `maze01.txt` to a new file and editing it to experiment.
+您也可以尝试复制`maze01.txt`到新文件并编辑它进行实验。
 
-Maybe you can create your own themes now... try visiting [Full Emoji List](https://unicode.org/emoji/charts/full-emoji-list.html) for inspiration. :)
+也许您现在可以创建自己的主题了...试试访问[完整表情符号列表](https://unicode.org/emoji/charts/full-emoji-list.html)寻找灵感。 :)
 
-[Take me to step 09!](../step09/README.md)
+[带我去步骤09！](../step09/README.md)

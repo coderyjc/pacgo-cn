@@ -1,25 +1,25 @@
-# Step 05: Game over man, game over!
+# 步骤05：游戏结束！
 
-In this lesson you will learn how to:
+在本课中，您将学习如何：
 
-- Use the fallthrough statement in switch blocks
-- Work with slices
+- 在switch块中使用fallthrough语句
+- 使用切片操作
 
-## Overview
+## 概述
 
-We are almost there. We have both player movement and ghost movement. But our ghosts are still inoffensive.
+我们即将完成。现在已经有玩家移动和幽灵移动功能，但幽灵还不会造成威胁。
 
-It's time to add some danger to this game. Also, with great risks should come great rewards, so we'll also be tackling the game win condition, by clearing the board of all its dots.
+是时候为游戏增加一些危险元素了。同时，高风险也应带来高回报，我们还将实现游戏胜利条件——清除场上所有豆子。
 
-## Task 01: Preparation
+## 任务01：准备工作
 
-For the game win condition we need to keep track of how many dots we have on the board, and declare win when this number is zero.
+为了实现游戏胜利条件，我们需要跟踪场上剩余的豆子数量，当数量为零时宣布胜利。
 
-We will need a mechanic to remove the dots from the board once the player stands over them. We will also keep track of a score to show the player.
+我们需要一个机制在玩家站在豆子上时将其移除，并记录分数显示给玩家。
 
-For the game over scenario, we will be giving the player one life and when a ghost hits them this life is zeroed. We then test for zero lives in the game loop to terminate the game. (It should be pretty straightforward to add support for multiple lives, but we will do this at a later step).
+对于游戏结束场景，我们将给玩家一条生命，当被幽灵碰到时生命值归零。然后在游戏循环中检测生命值是否为零来终止游戏。（后续可以很容易地扩展为多条生命，我们将在后续步骤中实现）
 
-Add the following global variables to track all of the above:
+添加以下全局变量来跟踪上述内容：
 
 ```go
 var score int
@@ -27,7 +27,7 @@ var numDots int
 var lives = 1
 ```
 
-Next, we need to initialize the `numDots` variable in `loadMaze`. We just need a new case in the switch that handles the `.` character:
+接下来，我们需要在`loadMaze`中初始化`numDots`变量。只需在switch中添加处理`.`字符的新case：
 
 ```go
 for row, line := range maze {
@@ -44,7 +44,7 @@ for row, line := range maze {
 }
 ```
 
-Now we need to update the `printScreen` function to print the dots again. This is an interesting case for the `fallthrough` statement:
+现在我们需要更新`printScreen`函数重新显示豆子。这是使用`fallthrough`语句的一个有趣案例：
 
 ```go
 func printScreen() {
@@ -62,54 +62,54 @@ func printScreen() {
         }
         fmt.Println()
     }
-    // rest of the function omitted for brevity...
+    // 其余代码省略...
 }
 ```
 
-Finally, at the end of the `printScreen` function let's add our score and lives panel:
+最后，在`printScreen`函数末尾添加分数和生命值面板：
 
 ```go
 func printScreen() {
-    // code omitted...
+    // 代码省略...
 
-    // print score
+    // 打印分数
     simpleansi.MoveCursor(len(maze)+1, 0)
-    fmt.Println("Score:", score, "\tLives:", lives)
+    fmt.Println("分数:", score, "\t生命:", lives)
 }
 ```
 
-## Task 02: Game over
+## 任务02：游戏结束
 
-To process game over is pretty straightforward. At any given moment in time, we are killing the player if they are in the same spot as a ghost. We will add the code that detects this to the game loop. We are also modifying the game quit condition adding `lives <= 0` and `numDots == 0`:
+处理游戏结束很简单。任何时候，如果玩家和幽灵处于同一位置，我们就判定玩家死亡。我们将检测这个情况的代码添加到游戏循环中。同时修改游戏退出条件，增加`lives <= 0`和`numDots == 0`：
 
 ```go
-// game loop
+// 游戏循环
 for {
-    // code ommited...
+    // 代码省略...
 
-    // process collisions
+    // 处理碰撞
     for _, g := range ghosts {
         if player == *g {
             lives = 0
         }
     }
 
-    // check game over
+    // 检查游戏结束
     if input == "ESC" || numDots == 0 || lives <= 0 {
         break
     }
 
-    // repeat
+    // 重复
 }
 ```
 
-Please note that the more verbose way of checking the player position is `player.row == g.row && player.col == g.col`, but since both player and ghost are sprites they can use a simple comparison `player == *g`. We still need to dereference `g` because we can't compare pointer and non pointer types.
+请注意，更详细的检查玩家位置的方法是`player.row == g.row && player.col == g.col`，但由于玩家和幽灵都是sprite类型，可以直接使用`player == *g`进行比较。我们仍然需要解引用`g`，因为不能直接比较指针和非指针类型。
 
-## Task 03: Game win
+## 任务03：游戏胜利
 
-We are now just missing the code to remove the dots from the game and increment the score.
+现在只缺少从游戏中移除豆子和增加分数的代码了。
 
-We will add this code to the `movePlayer` function:
+我们将这段代码添加到`movePlayer`函数中：
 
 ```go
 func movePlayer(dir string) {
@@ -118,22 +118,22 @@ func movePlayer(dir string) {
     case '.':
         numDots--
         score++
-        // Remove dot from the maze
+        // 从迷宫中移除豆子
         maze[player.row] = maze[player.row][0:player.col] + " " + maze[player.row][player.col+1:]
     }
 }
 ```
 
-The code above works as follows: first we make the movement. Then we check which character is in the same spot as the player. If it is a dot, we decrement the total number of dots (`numDots`), increment the score and remove the dot from the board.
+上述代码工作原理：首先执行移动。然后检查玩家所在位置的字符。如果是豆子，就减少豆子总数(`numDots`)，增加分数并从板上移除豆子。
 
-It's worthwhile to mention that strings in Go are immutable. We couldn't simply assign a space to a given position in a string. It wouldn't work.
+值得一提的是Go中的字符串是不可变的。我们不能简单地给字符串的某个位置赋值空格，这不会生效。
 
-Hence, we are using here a trick by creating a new string composed by two slices of the original string. The two slices together make the exact same original string except for one position, that we replace with a space.
+因此，我们在这里使用了一个技巧：通过创建由原字符串的两个切片组成的新字符串。这两个切片组合起来与原字符串完全相同，只是我们用一个空格替换了其中一个位置。
 
-For more information about slices, please see [here](https://blog.golang.org/go-slices-usage-and-internals).
+关于切片的更多信息，请参见[这里](https://blog.golang.org/go-slices-usage-and-internals)。
 
-Now we have both game win and game over conditions. Try building a map with just a couple of dots and test the game win. Hit a ghost to test the game over. We are making progress!
+现在我们同时具备了游戏胜利和游戏结束条件。尝试构建一个只有几个豆子的地图来测试游戏胜利。碰到幽灵来测试游戏结束。我们正在取得进展！
 
-(Tip: the maze01.txt at the step05 folder has only 3 dots.)
+（提示：step05文件夹中的maze01.txt只有3个豆子。）
 
-[Take me to step 06!](../step06/README.md)
+[带我去步骤06！](../step06/README.md)
